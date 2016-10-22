@@ -1,0 +1,15 @@
+body, td {
+   font-size: 12px;
+}
+code.r{
+  font-size: 12px;
+}
+r{
+  font-size: 12px;
+}
+pre {
+  font-size: 12px
+}
+.reveal section pre {
+  font-size: 12px;
+}

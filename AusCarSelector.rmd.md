@@ -1,0 +1,73 @@
+Australian Car Selector - low emission cars, by price.
+========================================================
+author: Angus Fry
+date: 22/10/2016
+transition: fade
+transition-speed: slow
+incremental: true
+autosize: false
+width: 1280
+height: 768
+font-family: 'Calibri'
+css: AusCarSelector.css
+
+Purpose
+========================================================
+Australians have one of the most diverse car markets in the world resulting in (too) many choices for consumers. Some websites exist to search car makes/models by price or by technical features; separate websites make recommendations based on emissions. There is not currently one single area where consumers can make informed purchasing decisions, taking emissions and costs into account.
+
+I propose to use the existing sites to construct a single dataset, available via an interactive online search, with economic criteria selected by the user, displaying matching vehicles ranked by emissions. With the average ownership duration of new cars being around 6 years, one of the levers needs to be a 6-year annualised cost to give users an evaluation criteria that balances the new car price and running costs.
+
+
+Complications for Consumers
+========================================================
+As the following data exploration shows, the cheapest car is not the lowest emissions car; and is not the cheapest car to run:
+
+
+```r
+df <- rbind(
+c(Category="LowestPrice",gvg[gvg$NewPrice==min(gvg$NewPrice)
+    ,c("Make","Model","Variant","NewPrice","FuelLifeCycleCO2","AnnualFuelCost","FuelTypeC")][1,]),
+c(Category="LowestEmission",gvg[gvg$FuelLifeCycleCO2==min(gvg$FuelLifeCycleCO2)
+    ,c("Make","Model","Variant","NewPrice","FuelLifeCycleCO2","AnnualFuelCost","FuelTypeC")][1,]),
+c(Category="LowestAnnualCost",gvg[gvg$AnnualFuelCost==min(gvg$AnnualFuelCost)
+    ,c("Make","Model","Variant","NewPrice","FuelLifeCycleCO2","AnnualFuelCost","FuelTypeC")][1,]))
+df
+```
+
+```
+     Category           Make     Model   Variant  NewPrice FuelLifeCycleCO2 AnnualFuelCost FuelTypeC 
+[1,] "LowestPrice"      "Suzuki" "Alto"  "GL"     9440     121              901            "Petrol"  
+[2,] "LowestEmission"   "Toyota" "Prius" "Hybrid" 27840    84               624            "Hybrid"  
+[3,] "LowestAnnualCost" "BMW"    "I01"   "i3"     63900    121              332            "Electric"
+```
+With the decision points pulling (at times) in opposite directions, consumers are left to make purchasing decisions based on primary criteria only.  Rather than provide my own weighted metrics, I will let the user decide what is important to them.
+
+User Controlled Filtering
+========================================================
+My solution will allow filtering by various price (economic) selections: [6 year costs, car price, annual running costs], presenting results ranked against emissions. Sliders like this: ![alt text](www/slider2.jpg) ![alt text](www/slider3.jpg)  would be evaluated in the server code:
+
+```r
+  #process results here for use by data table and chart
+  fdata <- reactive({
+    data <- gvg
+    data <- data[data$NewPrice >= input$newprice[1],]
+    data <- data[data$NewPrice <= input$newprice[2],]
+    data <- data[data$SixYearAnnCost <= input$sixyrcost,]
+    data <- data[data$AnnualFuelCost <= input$fuelcost,]
+    if (input$fueltypec != "All") {
+      data <- data[data$FuelTypeC == input$fueltypec,]
+    }
+  })
+```
+Instructions will be embedded within the application.
+
+Required Output
+========================================================
+incremental: false
+Upon setting search criteria, the user will be presented a table of results, able to be filtered by any of the key data columns.  Further the results should be displayed on a chart highlighting the relationship between costs and emissions.
+
+The chart right shows the likely quadrants resulting from the search. A user seeking value-for-money and low emissions should see a range of vehicles in the lower left quadrant.  For more see the solution:
+[Australian Car Selector App at ShinyApps](https://z3ngine.shinyapps.io/dataproducts_shiny/)
+***
+![alt text](www/chart_use.jpg)
+
